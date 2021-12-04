@@ -1,4 +1,5 @@
-import math
+from collections import OrderedDict
+from math import sqrt
 
 input_file = "example_input"
 input_file = "input"
@@ -7,31 +8,19 @@ chunks = open(input_file).read().split("\n\n")
 nums = [int(n) for n in chunks[0].split(",")]
 boards = [[int(n) for n in chunk.replace('\n', ' ').split()] for chunk in chunks[1:]]
 
-board_width = int(math.sqrt(len(boards[0])))
+board_width = int(sqrt(len(boards[0])))
 
-def is_board_winning(board):
-    for i in range(board_width):
-        row_start = i * board_width
-        if all(c is None for c in board[row_start:row_start + board_width]) or \
-            all(c is None for c in board[i:len(board):board_width]):
-            return True
+def get_rows(board, axis):
+    if not axis:  # rows
+        return [board[i * board_width:(i * board_width) + board_width] for i in range(board_width)]
+    return [board[i:len(board):board_width] for i in range(board_width)]
 
-    return False
+won = OrderedDict()
+for selected in (nums[:i] for i in range(1, len(nums))):
+    for bi, board in enumerate(boards):
+        if bi not in won and any(set(r).issubset(selected) for r in get_rows(board, 0) + get_rows(board, 1)):
+            won[bi] = sum(set(board).difference(selected)) * selected[-1]
 
-
-def solve(win_cond):
-    winning_boards = []
-    for num in nums:
-        for i, board in enumerate(boards):
-            if i not in winning_boards and num in board:
-                board[board.index(num)] = None
-                if is_board_winning(board):
-                    winning_boards.append(i)
-        if win_cond(winning_boards):
-            break
-
-    board = boards[winning_boards[-1]]
-    return num * sum([i for i in board if i is not None])
-
-print(solve(lambda x: bool(x)))
-print(solve(lambda x: len(x) == len(boards)))
+winners = list(won.items())
+print(winners[0][1])
+print(winners[-1][1])

@@ -13,10 +13,9 @@ for line in open(input_file):
     for c in line.strip():
         if c in open_to_closing_chars:
             expected_closing_chars.append(open_to_closing_chars[c])
-        else:
-            if c != expected_closing_chars.pop():
-                illegal_score += illegal_points[c]
-                break
+        elif c != expected_closing_chars.pop():
+            illegal_score += illegal_points[c]
+            break
     else:
         if expected_closing_chars:
             total = 0

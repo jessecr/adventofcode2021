@@ -39,25 +39,26 @@ def get_adjacent_cells(array, row, col):
     return cells
 
 
-def get_larger_adjacent_cells(array, cell, seen=None):
+def explore_basin(array, cell, seen=None):
     if seen is None:
         seen = set([cell])
     r, c = cell
     val = array[r][c]
-    larger_cells = []
+    basin = [cell]
     for next_cell in get_adjacent_cells(array, r, c):
         if next_cell in seen:
             continue
-        next_row, next_col = next_cell
-        next_val = array[next_row][next_col]
+
+        next_val = array[next_cell[0]][next_cell[1]]
+
         if next_val == 9:
             continue
+
         if next_val > val:
             seen.add(next_cell)
-            larger_cells.append(next_cell)
-            larger_cells.extend(get_larger_adjacent_cells(array, next_cell, seen))
+            basin.extend(explore_basin(array, next_cell, seen))
 
-    return larger_cells
+    return basin
 
 
 lows = get_low_points(array)
@@ -65,8 +66,6 @@ print("Part 1:", len(lows) + sum(array[r][c] for r, c in lows))
 
 basins = []
 for lowpoint in lows:
-    basin = [lowpoint]
-    basin.extend(get_larger_adjacent_cells(array, lowpoint))
-    basins.append(len(basin))
+    basins.append(len(explore_basin(array, lowpoint)))
 
 print("Part 2:", reduce(lambda x, y: x * y, sorted(b for b in basins)[-3:]))

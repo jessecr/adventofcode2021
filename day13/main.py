@@ -10,24 +10,27 @@ for line in folds_in.splitlines():
     axis, val_str = line.split()[-1].split('=')
     folds.append((axis, int(val_str)))
 
-height = max(val for ax, val in folds if ax == 'y') * 2 + 1
-width = max(val for ax, val in folds if ax == 'x') * 2 + 1
-
-points = [list(map(int, point.split(','))) for point in points_in.splitlines()]
-grid = np.zeros((height, width))
+points = np.array([list(map(int, point.split(','))) for point in points_in.splitlines()])
+grid = np.zeros((points[:, 1].max() + 1, points[:, 0].max() + 1)).astype(bool)
 for x, y in points:
-    grid[y][x] = 1
+    grid[y][x] = True
 
 
-def fold_it(grid, axis, val):
+def fold_it(grid, axis, fold_line):
     if axis == 'y':
-        to_mirror = grid[val + 1:][::-1]
-        grid = grid[:val]
+        to_mirror = grid[fold_line + 1:]
+        grid = grid[:fold_line]
+        for x in range(len(to_mirror[0])):
+            for y in range(len(to_mirror)):
+                grid[fold_line - y - 1][x] |= to_mirror[y][x]
     elif axis == 'x':
-        to_mirror = grid[:, val + 1:][:, ::-1]
-        grid = grid[:, :val]
+        to_mirror = grid[:, fold_line + 1:]
+        grid = grid[:, :fold_line]
+        for y in range(len(to_mirror)):
+            for x in range(len(to_mirror[0])):
+                grid[y][fold_line - x - 1] |= to_mirror[y][x]
 
-    return np.logical_or(grid, to_mirror).astype(int)
+    return grid
 
 
 print('Part 1:', fold_it(grid, folds[0][0], folds[0][1]).sum())
